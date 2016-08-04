@@ -31,7 +31,7 @@ defmodule Phoenix.PubSub.RedisServer do
     bin_msg   = :erlang.term_to_binary(redis_msg)
 
     :poolboy.transaction pool_name, fn worker_pid ->
-      case Redix.command(worker_pid, ["PUBLISH", namespace, bin_msg]) do
+      case Redix.command(worker_pid, ["PUBLISH", topic, bin_msg]) do
         {:ok, _} -> :ok
         {:error, reason} -> {:error, reason}
       end
@@ -61,6 +61,11 @@ defmodule Phoenix.PubSub.RedisServer do
 
   def handle_info(:establish_conn, state) do
     {:noreply, establish_conn(%{state | reconnect_timer: nil})}
+  end
+
+  def handle_call({:subscribe, topic}, %{redix_pid: redix_pid}=state) do
+    :ok = Redix.PubSub.subscribe(redix_pid, topic, self())
+    {:reply, :ok, state}
   end
 
   def handle_info({:redix_pubsub, redix_pid, :subscribed, _}, %{redix_pid: redix_pid} = state) do

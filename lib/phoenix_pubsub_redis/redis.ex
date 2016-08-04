@@ -78,7 +78,7 @@ defmodule Phoenix.PubSub.Redis do
                       {:node_name, __MODULE__, [node_name]}]
 
     children = [
-      supervisor(Phoenix.PubSub.LocalSupervisor, [server_name, pool_size, dispatch_rules]),
+      supervisor(Phoenix.PubSub.Redis.LocalSupervisor, [server_name, pool_size, dispatch_rules]),
       worker(Phoenix.PubSub.RedisServer, [server_opts]),
       :poolboy.child_spec(pool_name, pool_opts, redis_opts),
     ]
